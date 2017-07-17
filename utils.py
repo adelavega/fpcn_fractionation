@@ -6,14 +6,14 @@ def compress_values(array):
     """ Given an array with potentially non contiguous numbers, compress them """
     unique = np.unique(array)
     d = dict(zip(unique, np.arange(0, unique.shape[0])))
-    
+
     for k, v in d.iteritems(): array[array==k] = v
     return array
 
 def select_clusters(clustering, mask, method='percentage', amount = .3, compress=True):
-    """" From a clustering solution, select clusters with a certain amount of 
-    voxels within a given mask. 
-    
+    """" From a clustering solution, select clusters with a certain amount of
+    voxels within a given mask.
+
     Arguments:
     clustering - A nibabel image representing the clustering
     mask - A nibabel image mask
@@ -23,7 +23,7 @@ def select_clusters(clustering, mask, method='percentage', amount = .3, compress
 
     """
     from copy import deepcopy
-    
+
     clustering_copy = deepcopy(clustering)
 
     clustering = clustering.get_data()
@@ -46,9 +46,9 @@ def select_clusters(clustering, mask, method='percentage', amount = .3, compress
     cluster_perc_in = np.array([amnt_inmask(level, clustering, mask, method=method) for level in unique_values])
 
     values_in = unique_values[cluster_perc_in >= amount]
-    
+
     in_mask = np.in1d(clustering, values_in).reshape(clustering.shape)
-    
+
     clustering_copy.get_data()[in_mask == False] = 0
 
     if compress is True:
@@ -67,7 +67,7 @@ class ProgressBar():
     def __init__(self, total, start=False):
         """
         total - total number of events
-        start - automatically start when created? 
+        start - automatically start when created?
         """
         self.total = total
         self.current = 0.0
@@ -76,7 +76,7 @@ class ProgressBar():
             self.next()
 
     def update_progress(self, progress):
-        display = '\r[{0}] {1}%'.format('#' * (progress / 10), progress)
+        display = '\r[{0}] {1}%'.format('#' * int(progress / 10), progress)
         stdout.write(display)
         stdout.flush()
 
@@ -92,7 +92,7 @@ class ProgressBar():
             self.current = self.current + 1
 
     def reset(self):
-        print ""
+        print("")
         self.current = 0.0
 
 def mask_diagonal(masked_array):

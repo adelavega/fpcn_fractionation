@@ -4,7 +4,10 @@ from copy import deepcopy
 import numpy as np
 from tempfile import NamedTemporaryFile
 import nibabel as nib
-from surfer import project_volume_data
+try:
+    from surfer import project_volume_data
+except ImportError:
+    print("Pysurfer not installed.")
 import matplotlib.pyplot as plt
 import pylab as pl
 
@@ -14,15 +17,15 @@ def make_thresholded_slices(regions, colors, display_mode='z', overplot=True, bi
     colors: List of colors (rgb tuples)
     overplot: Overlay images?
     binarize: Binarize images or plot full stat maps
-    """             
+    """
 
     from matplotlib.colors import LinearSegmentedColormap
     from nilearn import plotting as niplt
-    
+
     if binarize:
         for reg in regions:
              reg.get_data()[reg.get_data().nonzero()] = 1
-                                   
+
     for i, reg in enumerate(regions):
         reg_color = LinearSegmentedColormap.from_list('reg1', [colors[i], colors[i]])
         if i == 0:
@@ -32,7 +35,7 @@ def make_thresholded_slices(regions, colors, display_mode='z', overplot=True, bi
                 plot.add_overlay(reg, cmap = reg_color, alpha=.72)
             else:
                 plt.plot_stat_map(reg, draw_cross=False,  display_mode=display_mode, cmap = reg_color, colorbar=False, **kwargs)
-    
+
     return plot
 
 def surf_clusters(brain, nifti, colormap=None, level_mask=None, **kwargs):
@@ -41,7 +44,7 @@ def surf_clusters(brain, nifti, colormap=None, level_mask=None, **kwargs):
     brain - pysurfer brain
     nifti - nifti image to display
     colormap - colormap to use, if none uses husl palette
-    spatial_mask - Optional spatial mask to apply. 
+    spatial_mask - Optional spatial mask to apply.
     level_mask - Optionally mask certain clusters (levels) of the image """
 
     args = {'thresh': 0.001, 'alpha': 0.8,
@@ -105,11 +108,11 @@ def surf_coactivation(brain, niftis, colormap=None, reduce_alpha_step = 0, **kwa
 
     if colormap is None:
         colormap = sns.color_palette('Set1', len(niftis))
-    
-    for i, image in enumerate(niftis):      
+
+    for i, image in enumerate(niftis):
         with NamedTemporaryFile(suffix='.nii.gz') as f:
             nib.save(positive_only(image), f.name)
-             
+
             l_roi_surf = project_volume_data(f.name, "lh",
                                 subject_id="fsaverage", smooth_fwhm=2)
             r_roi_surf = project_volume_data(f.name, "rh",
@@ -123,7 +126,7 @@ def surf_coactivation(brain, niftis, colormap=None, reduce_alpha_step = 0, **kwa
                 brain.add_data(l_roi_surf, hemi='lh', colormap=color, **args)
             if r_roi_surf.max() > 0:
                 brain.add_data(r_roi_surf, hemi='rh', colormap=color, **args)
-                
+
             args['alpha'] -= reduce_alpha_step
 
 def plot_clf_polar(importances, palette=None, mask=None, **kwargs):
@@ -133,10 +136,10 @@ def plot_clf_polar(importances, palette=None, mask=None, **kwargs):
     mask - List of which regions to include, by default uses all """
     import pandas as pd
     import seaborn as sns
-    
+
     if mask is not None:
         importances = importances[importances.region.isin(mask)]
-    
+
     pplot = pd.pivot_table(importances, values='importance', index='feature', columns=['region'])
 
     if palette is None:
@@ -148,11 +151,11 @@ def plot_clf_polar(importances, palette=None, mask=None, **kwargs):
 
 
 def plot_polar(data, n_top=3, selection='top', overplot=False, labels=None,
-               palette='husl', reorder=False, method='weighted', metric='correlation', 
+               palette='husl', reorder=False, method='weighted', metric='correlation',
                label_size=26, threshold=None, max_val=None,
                alpha_level=1, legend=False, error_bars=None, min_val=-0.85):
     """ Make a polar plot
-    data - Tabular data of shape features x classes 
+    data - Tabular data of shape features x classes
     n_top - Number of features to select
     selection - Selection method to use `
                 (top = M strongest for each class; std = N with greatest std across all)
@@ -184,7 +187,7 @@ def plot_polar(data, n_top=3, selection='top', overplot=False, labels=None,
             labels = data.T.std().sort_values(ascending=False).index[:n_top]
 
         data = data.loc[labels,:]
-    
+
     else:
         data = data.loc[labels,:]
 
@@ -208,7 +211,7 @@ def plot_polar(data, n_top=3, selection='top', overplot=False, labels=None,
 
 
     theta = np.linspace(0.0, 2 * np.pi, len(labels), endpoint=False)
-    
+
     ## Add first
     theta = np.concatenate([theta, [theta[0]]])
     if overplot:
@@ -218,7 +221,7 @@ def plot_polar(data, n_top=3, selection='top', overplot=False, labels=None,
         fig, axes = plt.subplots(n_panels, 1, sharex=False, sharey=False,
                              subplot_kw=dict(polar=True))
         fig.set_size_inches((6, 6 * n_panels))
-        
+
     if isinstance(palette, str):
         from seaborn import color_palette
         colors = color_palette(palette, n_panels)
@@ -237,9 +240,9 @@ def plot_polar(data, n_top=3, selection='top', overplot=False, labels=None,
                 max_val = data.values.max() + error_bars.values.max() + data.values.max() * .02
             else:
                 max_val = data.values.max()
-        
+
         ax.set_ylim(min_val, max_val)
-        
+
         d = data.iloc[:,i].values
         d = np.concatenate([d, [d[0]]])
         name = data.columns[i]
@@ -261,7 +264,7 @@ def plot_polar(data, n_top=3, selection='top', overplot=False, labels=None,
         ax.set_xticklabels(labels, fontsize=label_size)
         [lab.set_fontsize(22) for lab in ax.get_yticklabels()]
 
-    
+
     if threshold is not None:
         theta = np.linspace(0.0, 2 * np.pi, 999, endpoint=False)
         theta = np.concatenate([theta, [theta[0]]])
