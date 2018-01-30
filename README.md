@@ -1,4 +1,4 @@
-## Heterogeneity within the frontoparietal network and its relationship to the default and dorsal attention networks.
+## Heterogeneity within the frontoparietal network and its relationship to the default and dorsal attention networks
 
 Matthew L. Dixon, Alejandro De La Vega, Caitlin Mills, Jessica Andrews-Hanna, R. Nathan Spreng, Michael W. Cole, Kalina Christoff
 Proceedings of the National Academy of Sciences Jan 2018, 201715766; DOI: 10.1073/pnas.1715766115
